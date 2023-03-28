@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Poll</title>
+</head>
+<body>
+    <h1>Create a New Poll</h1>
+    <form action="/create-poll" method="post">
+        <label for="question">Question:</label>
+        <input type="text" id="question" name="question" required>
+        <br>
+        <label for="options">Options (separated by commas):</label>
+        <input type="text" id="options" name="options" required>
+        <br>
+        <button type="submit">Create Poll</button>
+    </form>
+</body>
+</html>

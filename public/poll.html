@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poll</title>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const pollId = new URLSearchParams(window.location.search).get('poll');
+      if (!pollId) {
+        alert('Invalid poll ID');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/poll/${pollId}`);
+        if (!response.ok) {
+          throw new Error(`Error fetching poll: ${response.status}`);
+        }
+
+        const {poll, options, totalVotes} = await response.json();
+
+        document.getElementById('question').textContent = poll.question;
+        const voteForm = document.getElementById('vote-form');
+
+        for (const option of options) {
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = 'option';
+          input.value = option.id;
+
+          const percentage = Math.round((option.votes.length / totalVotes) * 100);
+          const names = option.votes.map(vote => vote.voter_name).join(', ');
+
+          const label = document.createElement('label');
+          label.textContent = `${option.option_text} (${totalVotes ? percentage : '-'}%) [${names}]`;
+
+          voteForm.insertBefore(input, voteForm.lastElementChild);
+          voteForm.insertBefore(label, voteForm.lastElementChild);
+          voteForm.insertBefore(document.createElement('br'), voteForm.lastElementChild);
+        }
+
+        voteForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          const selectedOption = voteForm.elements.option.value;
+          if (!selectedOption) {
+            alert('Please select an option');
+            return;
+          }
+
+          const voterName = voteForm.elements.votername.value;
+
+          try {
+            const response = await fetch(`/vote/${pollId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({option: selectedOption, name: voterName})
+            });
+
+            if (!response.ok) {
+              throw new Error(`Error submitting vote: ${response.status}`);
+            }
+
+            // Handle the response (e.g., update the results)
+            alert('Vote recorded');
+          } catch (error) {
+            console.error(error);
+            alert('Error submitting vote');
+          }
+        });
+
+      } catch (error) {
+        console.error(error);
+        alert('Error fetching poll data');
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <h1 id="question">Poll Question</h1>
+  <form id="vote-form">
+    <!-- Poll options will be added here dynamically -->
+    <input type="text" placeholder="Your Name" name="votername" /><br />
+    <button type="submit">Vote</button>
+  </form>
+  <div id="results">
+    <!-- Poll results will be displayed here -->
+  </div>
+</body>
+
+</html>
